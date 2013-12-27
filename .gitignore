@@ -11,3 +11,22 @@
 *.lai
 *.la
 *.a
+
+#Visual Studio ignores
+*.suo
+*.sdf
+*.opensdf
+*.user
+*.ipch
+*.tlog
+*.lastbuildstate
+*.log
+*.onetoc2
+*.obj
+*.cache
+*.pdb
+*.idb
+*.bak
+*.orig
+*.cod
+*.fxo
