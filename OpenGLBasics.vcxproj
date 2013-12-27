@@ -10,6 +10,12 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\OpenGLApp.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\OpenGLApp.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BFAC170F-3C8F-4484-9771-9CDC8D719D1B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -73,12 +79,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="OpenGLApp.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="OpenGLApp.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
