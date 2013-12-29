@@ -11,10 +11,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\OpenGLApp.cpp" />
+    <ClCompile Include="src\Core\Director.cpp" />
+    <ClCompile Include="src\Platform\Windows\Platform.cpp" />
+    <ClCompile Include="src\Platform\Windows\WinApp.cpp" />
+    <ClCompile Include="src\Renderer\OpenGLRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\OpenGLApp.h" />
+    <ClInclude Include="src\Core\Director.h" />
+    <ClInclude Include="src\Platform\Platform.h" />
+    <ClInclude Include="src\Platform\Windows\WinApp.h" />
+    <ClInclude Include="src\Renderer\OpenGLRenderer.h" />
+    <ClInclude Include="src\Renderer\Renderer.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BFAC170F-3C8F-4484-9771-9CDC8D719D1B}</ProjectGuid>
@@ -59,7 +66,7 @@
       <AdditionalIncludeDirectories>gl</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glut32.lib;glu32.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>gl</AdditionalLibraryDirectories>
@@ -77,7 +84,7 @@
       <AdditionalIncludeDirectories>gl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>

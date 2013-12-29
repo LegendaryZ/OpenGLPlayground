@@ -8,15 +8,45 @@
     <Filter Include="src">
       <UniqueIdentifier>{205df799-8211-4606-aa62-c6ffa72a20bb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Platform">
+      <UniqueIdentifier>{d91894f4-abe0-4800-8168-6c6e669baddb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core">
+      <UniqueIdentifier>{1164a5a4-ba0e-400e-bd13-89ea4853d09a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Rendering">
+      <UniqueIdentifier>{6403883c-4c04-4dd1-ad2b-6c8b3e8a3f3e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\OpenGLApp.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="src\Renderer\OpenGLRenderer.cpp">
+      <Filter>src\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Director.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Windows\Platform.cpp">
+      <Filter>src\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Windows\WinApp.cpp">
+      <Filter>src\Platform</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\OpenGLApp.h">
-      <Filter>src</Filter>
+    <ClInclude Include="src\Renderer\OpenGLRenderer.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\Renderer.h">
+      <Filter>src\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Platform.h">
+      <Filter>src\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Director.h">
+      <Filter>src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Windows\WinApp.h">
+      <Filter>src\Platform</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

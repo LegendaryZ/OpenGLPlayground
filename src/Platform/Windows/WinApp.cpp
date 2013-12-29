@@ -1,4 +1,42 @@
-#include "OpenGLApp.h"
+#include "WinApp.h"
+
+#include "..\..\Renderer\Renderer.h"
+
+namespace
+{
+	// This is just used to forward Windows messages from a global window
+	// procedure to our member function window procedure because we cannot
+	// assign a member function to WNDCLASS::lpfnWndProc.
+	WinApp* gWinApp = 0;
+}
+
+LRESULT CALLBACK
+MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	// Forward hwnd on because we can get messages (e.g., WM_CREATE)
+	// before CreateWindow returns, and thus before mhMainWnd is valid.
+	return gWinApp->MsgProc(hwnd, msg, wParam, lParam);
+}
+
+WinApp::WinApp(HINSTANCE hInstance)
+{
+	gWinApp = this;
+	isFullscreen = FALSE;  // toggles fullscreen and windowed display
+	isActive = TRUE;      // false if window is minimized
+	hwnd = NULL;          // handle of our window
+	this->hInstance = hInstance; // application instance
+
+	APP_TITLE = L"Projections";
+
+	SCREEN_WIDTH    = 1280;
+	SCREEN_HEIGHT   = 720;
+	SCREEN_BPP      = 32;
+	USE_FULLSCREEN  = false;
+}
+
+WinApp::~WinApp()
+{
+}
 
 /**
  * Windows Procedure Event Handler
@@ -17,7 +55,7 @@
  *
  * @return LRESULT  The result of the message being handled. Is a long integer
  **/
-LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK WinApp::MsgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch(message)
 	{
@@ -26,12 +64,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (!HIWORD(wParam))
 			{
 				// program was restored or maximized
-				g_isActive = TRUE;
+				isActive = TRUE;
 			}
 			else
 			{
 				// program was minimized
-				g_isActive=FALSE;
+				isActive=FALSE;
 			}
 
 			return 0;
@@ -43,8 +81,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				case SC_SCREENSAVE:     // screensaver trying to start
 				case SC_MONITORPOWER:   // monitor going to powersave mode
-					// returning 0 prevents either from happening
-					return 0;
+					return 0;// returning 0 prevents either from happening
 				default:
 					break;
 			}
@@ -60,7 +97,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_SIZE:
 	{
 		// update perspective with new width and height
-		ResizeScene(LOWORD(lParam), HIWORD(lParam));
+		director->getRenderer()->OnResize(LOWORD(lParam), HIWORD(lParam));
 		return 0;
 	}
 
@@ -68,11 +105,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		switch (toupper(wParam))
 		{
-			case VK_SPACE:
-			{
-				UpdateProjection(GL_TRUE);
-				return 0;
-			}
 			case VK_ESCAPE:
 			{
 				// send WM_QUIT to message queue
@@ -100,30 +132,30 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
  * @param title			text to put in the title bar
  * @param width			width of the window
  * @param height		height of the window
- * @param bits			some more explanation
+ * @param bits			bits per pixel
  * @param isFullscreen  whether the app is being run in fullscreen
  * 
  * @return TRUE if everything goes well, or FALSE if an unrecoverable error
  *			occurs. Note that if this is called twice within a program, KillWindow needs
  *			to be called before subsequent calls to SetupWindow.
  **/
-BOOL SetupWindow(LPCWSTR title, int width, int height, int bits, bool isFullscreen)
+BOOL WinApp::SetupWindow(LPCWSTR title, int width, int height, int bits, bool isFullscreen)
 {
 	// set the global flag
-	g_isFullscreen = isFullscreen;
+	isFullscreen = isFullscreen;
 
 	// get our instance handle
-	g_hInstance = GetModuleHandle(NULL);
+	hInstance = GetModuleHandle(NULL);
 
 	WNDCLASSEX  wc;    // window class
 
 	// fill out the window class structure
 	wc.cbSize         = sizeof(WNDCLASSEX);
 	wc.style          = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wc.lpfnWndProc    = WndProc;
+	wc.lpfnWndProc    = MainWndProc;
 	wc.cbClsExtra     = 0;
 	wc.cbWndExtra     = 0;
-	wc.hInstance      = g_hInstance;
+	wc.hInstance      = hInstance;
 	wc.hIcon          = LoadIcon(NULL, IDI_APPLICATION);  // default icon
 	wc.hIconSm        = LoadIcon(NULL, IDI_WINLOGO);      // windows logo small icon
 	wc.hCursor        = LoadCursor(NULL, IDC_ARROW);      // default arrow
@@ -141,7 +173,7 @@ BOOL SetupWindow(LPCWSTR title, int width, int height, int bits, bool isFullscre
 	}
 
 	// if we're in fullscreen mode, set the display up for it
-	if (g_isFullscreen)
+	if (isFullscreen)
 	{
 		// set up the device mode structure
 		DEVMODE screenSettings;
@@ -161,7 +193,7 @@ BOOL SetupWindow(LPCWSTR title, int width, int height, int bits, bool isFullscre
                            L"OpenGL Game Programming",
                            MB_YESNO | MB_ICONEXCLAMATION) == IDYES)
 			{
-				g_isFullscreen = FALSE;
+				isFullscreen = FALSE;
 			}
 			else
 			{
@@ -174,7 +206,7 @@ BOOL SetupWindow(LPCWSTR title, int width, int height, int bits, bool isFullscre
 	DWORD dwStyle;
 
 	// set the window style appropriately, depending on whether we're in fullscreen mode
-	if (g_isFullscreen)
+	if (isFullscreen)
 	{
 		dwExStyle = WS_EX_APPWINDOW;
 		dwStyle = WS_POPUP;           // simple window with no borders or title bar
@@ -198,7 +230,7 @@ BOOL SetupWindow(LPCWSTR title, int width, int height, int bits, bool isFullscre
 	AdjustWindowRectEx(&windowRect, dwStyle, FALSE, dwExStyle);
 
 	// class registered, so now create our window
-	g_hwnd = CreateWindowEx(dwExStyle,          // extended style
+	hwnd = CreateWindowEx(dwExStyle,          // extended style
 	                        WND_CLASS_NAME,     // class name
 		                    title,              // app name
 		                    dwStyle |           // window style
@@ -209,18 +241,18 @@ BOOL SetupWindow(LPCWSTR title, int width, int height, int bits, bool isFullscre
                             windowRect.bottom - windowRect.top, // height
                             NULL,               // handle to parent
                             NULL,               // handle to menu
-                            g_hInstance,        // application instance
+                            hInstance,        // application instance
                             NULL);              // no extra params
 
 	// see if our window handle is valid
-	if (!g_hwnd)
+	if (!hwnd)
 	{
 		MessageBox(NULL, L"Unable to create window", L"Error", MB_OK | MB_ICONEXCLAMATION);
 		return FALSE;
 	}
 
 	// get a device context
-	if (!(g_hdc = GetDC(g_hwnd)))
+	if (!(hdc = GetDC(hwnd)))
 	{
 		MessageBox(NULL, L"Unable to create device context", L"Error", MB_OK | MB_ICONEXCLAMATION);
 		return FALSE;
@@ -247,69 +279,82 @@ BOOL SetupWindow(LPCWSTR title, int width, int height, int bits, bool isFullscre
 		0,                              // reserved
 		0, 0, 0 };                      // layer masks ignored
 
-	GLuint  pixelFormat;
+	int  pixelFormat;
 
 	// choose best matching pixel format
-	if (!(pixelFormat = ChoosePixelFormat(g_hdc, &pfd)))
+	if (!(pixelFormat = ChoosePixelFormat(hdc, &pfd)))
 	{
 		MessageBox(NULL, L"Can't find an appropriate pixel format", L"Error", MB_OK | MB_ICONEXCLAMATION);
 		return FALSE;
 	}
 
 	// set pixel format to device context
-	if(!SetPixelFormat(g_hdc, pixelFormat,&pfd))
+	if(!SetPixelFormat(hdc, pixelFormat,&pfd))
 	{
 		MessageBox(NULL, L"Unable to set pixel format", L"Error", MB_OK | MB_ICONEXCLAMATION);
 		return FALSE;
 	}
 
 	// create the OpenGL rendering context
-	if (!(g_hrc = wglCreateContext(g_hdc)))
+	if (!(hrc = wglCreateContext(hdc)))
 	{
 		MessageBox(NULL, L"Unable to create OpenGL rendering context", L"Error",MB_OK | MB_ICONEXCLAMATION);
 		return FALSE;
 	}
 
 	// now make the rendering context the active one
-	if(!wglMakeCurrent(g_hdc, g_hrc))
+	if(!wglMakeCurrent(hdc, hrc))
 	{
 		MessageBox(NULL,L"Unable to activate OpenGL rendering context", L"ERROR", MB_OK | MB_ICONEXCLAMATION);
 		return FALSE;
 	}
 
 	// show the window in the forground, and set the keyboard focus to it
-	ShowWindow(g_hwnd, SW_SHOW);
-	SetForegroundWindow(g_hwnd);
-	SetFocus(g_hwnd);
-
-	// set up the perspective for the current screen size
-	ResizeScene(width, height);
+	ShowWindow(hwnd, SW_SHOW);
+	SetForegroundWindow(hwnd);
+	SetFocus(hwnd);
 
 	// do one-time initialization
-	if (!InitializeScene())
+	if (!Initialize())
 	{
 		MessageBox(NULL, L"Initialization failed", L"Error", MB_OK | MB_ICONEXCLAMATION);
 		return FALSE;
 	}
 
+	// set up the perspective for the current screen size
+	director->getRenderer()->OnResize(width, height);
+
 	return TRUE;
 } // end SetupWindow()
 
+BOOL WinApp::Initialize()
+{
+	director = Director::getSharedDirector();
+	platform = Platform::getInstance();
+
+	if(!platform->SetUpSubsystems(director))
+		return false;
+
+	if(!director->getRenderer()->Initialize(hdc))
+		return false;
+
+	return true;
+}
 
 /**
  * Deletes the DC, RC, and Window, and restores the original display.
  **/
-BOOL KillWindow()
+BOOL WinApp::KillWindow()
 {
 	// restore the original display if we're in fullscreen mode
-	if (g_isFullscreen)
+	if (isFullscreen)
 	{
 		ChangeDisplaySettings(NULL, 0);
 		ShowCursor(TRUE);
 	}
 
 	// if we have an RC, release it
-	if (g_hrc)
+	if (hrc)
 	{
 		// release the RC
 		if (!wglMakeCurrent(NULL,NULL))
@@ -318,154 +363,79 @@ BOOL KillWindow()
 		}
 
 		// delete the RC
-		if (!wglDeleteContext(g_hrc))
+		if (!wglDeleteContext(hrc))
 		{
 			MessageBox(NULL, L"Unable to delete rendering context", L"Error", MB_OK | MB_ICONINFORMATION);
 		}
 
-		g_hrc = NULL;
+		hrc = NULL;
 	}
 
 	// release the DC if we have one
-	if (g_hdc && !ReleaseDC(g_hwnd, g_hdc))
+	if (hdc && !ReleaseDC(hwnd, hdc))
 	{
 		MessageBox(NULL, L"Unable to release device context", L"Error", MB_OK | MB_ICONINFORMATION);
-		g_hdc = NULL;
+		hdc = NULL;
 	}
 
 	// destroy the window if we have a valid handle
-	if (g_hwnd && !DestroyWindow(g_hwnd))
+	if (hwnd && !DestroyWindow(hwnd))
 	{
 		MessageBox(NULL, L"Unable to destroy window", L"Error", MB_OK | MB_ICONINFORMATION);
-		g_hwnd = NULL;
+		hwnd = NULL;
 	}
 
 	// unregister our class so we can create a new one if we need to
-	if (!UnregisterClass(WND_CLASS_NAME, g_hInstance))
+	if (!UnregisterClass(WND_CLASS_NAME, hInstance))
 	{
 		MessageBox(NULL, L"Unable to unregister window class", L"Error", MB_OK | MB_ICONINFORMATION);
-		g_hInstance = NULL;
+		hInstance = NULL;
 	}
 
 	return TRUE;
 } // end KillWindow()
 
-
-/**
- * Called once when the application starts and again every time the window is
- * resized by the user.
- *
- * @param width		the new width of the window
- * @param height	the new height of the window
- **/
-GLvoid ResizeScene(GLsizei width, GLsizei height)
-{
-	// avoid divide by zero
-	if (height==0)
-	{
-		height=1;
-	}
-
-	// reset the viewport to the new dimensions
-	glViewport(0, 0, width, height);
-
-	// set up the projection, without toggling the projection mode
-	UpdateProjection();
-} // end ResizeScene()
-
-
-/**
- * Performs one-time application-specific setup. Returns FALSE on any failure.
- **/
-BOOL InitializeScene()
-{
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glShadeModel(GL_SMOOTH);
-	glEnable(GL_DEPTH_TEST);
-
-	return TRUE;
-} // end InitializeScene()
-
-
-/**
- * The work of the application is done here. This is called every frame, and
- * handles the actual rendering of the scene.
- **/
-BOOL DisplayScene()
-{
-	GLfloat yellow[4] = { 1.0f, 1.0f, 0.2f, 1.0f };
-	GLfloat blue[4] = { 0.2f, 0.2f, 1.0f, 1.0f };
-	GLfloat green[4] = { 0.2f, 1.0f, 0.2f, 1.0f };
-
-	glLoadIdentity();
-	gluLookAt(-0.5, 1.0, 7.0,
-		       0.0, 0.0, 0.0,
-			   0.0, 1.0, 0.0);
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, yellow);
-	glPushMatrix();
-		glTranslatef(0.3, 0.0, 1.0);
-		glutSolidCube(0.5);
-	glPopMatrix();
-
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, blue);
-	glPushMatrix();
-		glutSolidCube(0.5);
-	glPopMatrix();
-
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, green);
-	glPushMatrix();
-		glTranslatef(-0.3, 0.0, -1.0);
-		glutSolidCube(0.5);
-	glPopMatrix();
-
-	// switch the front and back buffers to display the updated scene
-	SwapBuffers(g_hdc);
-  
-	return TRUE;
-} // end DisplayScene()
-
-
 /**
  * Called at the end of successful program execution.
  **/
-BOOL Cleanup()
+BOOL WinApp::Cleanup()
 {
 	return TRUE;
 } // end Cleanup()
 
+int WinApp::Run()
+{
+	int result;
+	if (SetupWindow(APP_TITLE, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, USE_FULLSCREEN))
+		result = director->run();
+	
+	Cleanup();
+	KillWindow();
+
+	return result;
+}
 
 /**
- * Sets the current projection mode. If toggle is set to GL_TRUE, then the
- * projection will be toggled between perspective and orthograpic. Otherwise,
- * the previous selection will be used again.
+ * Main Function
  *
- * @param toggle	whether to use perspective projection or not
+ * @param hInstance		Is a handle to your applications instance, where an instance 
+ *						can be considered to be a single run of your application. The instance 
+ *						is used by windows as a reference to your application for event handling,
+ *						message processing, and various other duties.
+ *
+ * @param hPrevInstance is always NULL. 
+ *
+ * @param lpCmdLine		is a pointer string that is used to hold any command-line
+ *						arguments that may have been specified when the application began.  
+ *						For example, if the user opened the Run application and typed myapp.exe
+ *						myparameter 1, then lpCmdLine would be myparameter 1.
+ *
+ * @param nShowCMD		is the parameter that determines how your application's window
+ *						will be displayed once it begins executing.
  **/
-void UpdateProjection(GLboolean toggle)
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	GLboolean s_usePerspective = toggle;
+	WinApp app(hInstance);
 
-	// select the projection matrix and clear it out
-	glMatrixMode(GL_PROJECTION);
-
-	glLoadIdentity();
-
-	// choose the appropriate projection based on the currently toggled mode
-	if (s_usePerspective)
-	{
-		// set the perspective with the appropriate aspect ratio
-		glFrustum(-1.0, 1.0, -1.0, 1.0, 5, 100);
-	}
-	else
-	{
-		// set up an orthographic projection with the same near clip plane
-		glOrtho(-1.0, 1.0, -1.0, 1.0, 5, 100);
-	}
-
-	// select modelview matrix and clear it out
-	glMatrixMode(GL_MODELVIEW);
-} // end UpdateProjection
+	return app.Run();
+}
