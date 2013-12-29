@@ -1,6 +1,11 @@
 #include "OpenGLRenderer.h"
 #include "../../gl/glut.h"
 
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+
 OpenGLRenderer::OpenGLRenderer(void)
 {
 }
@@ -16,12 +21,109 @@ OpenGLRenderer::~OpenGLRenderer(void)
 BOOL OpenGLRenderer::Initialize(HDC hdc)
 {
 	this->hdc = hdc;
+
+	if (glewInit() != GLEW_OK) 
+		return false;
+
+	programID = LoadShaders( "src\\Renderer\\Shaders\\SimpleVertexShader.vertexshader", "src\\Renderer\\Shaders\\SimpleFragmentShader.fragmentshader" );
+		// An array of 3 vectors which represents 3 vertices
+	static const GLfloat g_vertex_buffer_data[] = {
+		-5.0f, -5.0f, -50.0f,
+		5.0f, -5.0f, -50.0f,
+		0.0f,  5.0f, -50.0f,
+	};
+
+	// Generate 1 buffer, put the resulting identifier in vertexbuffer
+	glGenBuffers(1, &vertexbuffer);
+
+	// The following commands will talk about our 'vertexbuffer' buffer
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+
+	// Give our vertices to OpenGL.
+	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_DEPTH_TEST);
 
 	return TRUE;
+}
+
+GLuint OpenGLRenderer::LoadShaders(const char * vertex_file_path,const char * fragment_file_path){
+
+    // Create the shaders
+    GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+    GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+
+    // Read the Vertex Shader code from the file
+    std::string VertexShaderCode;
+    std::ifstream VertexShaderStream(vertex_file_path, std::ios::in);
+    if(VertexShaderStream.is_open())
+    {
+        std::string Line = "";
+        while(getline(VertexShaderStream, Line))
+            VertexShaderCode += "\n" + Line;
+        VertexShaderStream.close();
+    }
+
+    // Read the Fragment Shader code from the file
+    std::string FragmentShaderCode;
+    std::ifstream FragmentShaderStream(fragment_file_path, std::ios::in);
+    if(FragmentShaderStream.is_open()){
+        std::string Line = "";
+        while(getline(FragmentShaderStream, Line))
+            FragmentShaderCode += "\n" + Line;
+        FragmentShaderStream.close();
+    }
+
+    GLint Result = GL_FALSE;
+    int InfoLogLength;
+
+    // Compile Vertex Shader
+    printf("Compiling shader : %s\n", vertex_file_path);
+    char const * VertexSourcePointer = VertexShaderCode.c_str();
+    glShaderSource(VertexShaderID, 1, &VertexSourcePointer , NULL);
+    glCompileShader(VertexShaderID);
+
+    // Check Vertex Shader
+    glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
+    glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    std::vector<char> VertexShaderErrorMessage(InfoLogLength);
+    glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
+    fprintf(stdout, "%s\n", &VertexShaderErrorMessage[0]);
+
+    // Compile Fragment Shader
+    printf("Compiling shader : %s\n", fragment_file_path);
+    char const * FragmentSourcePointer = FragmentShaderCode.c_str();
+    glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer , NULL);
+    glCompileShader(FragmentShaderID);
+
+    // Check Fragment Shader
+    glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
+    glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    std::vector<char> FragmentShaderErrorMessage(InfoLogLength);
+    glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
+    fprintf(stdout, "%s\n", &FragmentShaderErrorMessage[0]);
+
+    // Link the program
+    fprintf(stdout, "Linking program\n");
+    GLuint ProgramID = glCreateProgram();
+    glAttachShader(ProgramID, VertexShaderID);
+    glAttachShader(ProgramID, FragmentShaderID);
+    glLinkProgram(ProgramID);
+
+    // Check the program
+    glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
+    glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+    std::vector<char> ProgramErrorMessage( max(InfoLogLength, int(1)) );
+    glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
+    fprintf(stdout, "%s\n", &ProgramErrorMessage[0]);
+
+    glDeleteShader(VertexShaderID);
+    glDeleteShader(FragmentShaderID);
+
+    return ProgramID;
 }
 
 /**
@@ -69,34 +171,26 @@ BOOL OpenGLRenderer::UpdateProjection(void)
 
 BOOL OpenGLRenderer::Render()
 {
-	GLfloat yellow[4] = { 1.0f, 1.0f, 0.2f, 1.0f };
-	GLfloat blue[4] = { 0.2f, 0.2f, 1.0f, 1.0f };
-	GLfloat green[4] = { 0.2f, 1.0f, 0.2f, 1.0f };
-
-	glLoadIdentity();
-	gluLookAt(-0.5, 1.0, 7.0,
-		       0.0, 0.0, 0.0,
-			   0.0, 1.0, 0.0);
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.0,0.0,0.0,0.0);
 
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, yellow);
-	glPushMatrix();
-		glTranslatef(0.3, 0.0, 1.0);
-		glutSolidCube(0.5);
-	glPopMatrix();
+	//Use the shader
+	glUseProgram(programID);
 
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, blue);
-	glPushMatrix();
-		glutSolidCube(0.5);
-	glPopMatrix();
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glVertexAttribPointer(
+	   0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+	   3,                  // size
+	   GL_FLOAT,           // type
+	   GL_FALSE,           // normalized?
+	   0,                  // stride
+	   (void*)0            // array buffer offset
+	);
 
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, green);
-	glPushMatrix();
-		glTranslatef(-0.3, 0.0, -1.0);
-		glutSolidCube(0.5);
-	glPopMatrix();
+	// Draw the triangle !
+	glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+
+	glDisableVertexAttribArray(0);
 
 	// switch the front and back buffers to display the updated scene
 	SwapBuffers(hdc);

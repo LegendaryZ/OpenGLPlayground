@@ -4,6 +4,11 @@
 #include "../../Renderer/OpenGLRenderer.h"
 #include "../../Core/Director.h"
 
+/**
+ * The singleton constructor/referencer for the Platform
+ *
+ * @return Platform		the current platform
+ **/
 Platform* Platform::getInstance()
 {
 	static Platform* platform;
@@ -22,11 +27,21 @@ Platform::~Platform()
 {
 }
 
+/**
+ * Returns what platform we are currently on
+ *
+ * @return PlatformType		the platform we are on
+ **/
 Platform::PlatformType Platform::DetectPlatform()
 {
 	return Platform::PlatformType::Windows;
 }
 
+/**
+ * Choose the correct subsytems to spin up
+ *
+ * @return success or failure
+ **/
 bool Platform::SetUpSubsystems(Director* director)
 {
 	director->setRenderer(new OpenGLRenderer());
@@ -34,6 +49,11 @@ bool Platform::SetUpSubsystems(Director* director)
 	return true;
 }
 
+/**
+ * Handle interaction from the os to the process
+ *
+ * @return the message from the os
+ **/
 int Platform::PlatformProcess()
 {
 	int result = 0;

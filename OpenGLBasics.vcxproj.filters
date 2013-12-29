@@ -17,6 +17,9 @@
     <Filter Include="src\Rendering">
       <UniqueIdentifier>{6403883c-4c04-4dd1-ad2b-6c8b3e8a3f3e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Rendering\Shaders">
+      <UniqueIdentifier>{02b3bbf2-41a4-413e-bf42-566c2928992a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Renderer\OpenGLRenderer.cpp">
@@ -48,5 +51,13 @@
     <ClInclude Include="src\Platform\Windows\WinApp.h">
       <Filter>src\Platform</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Renderer\Shaders\SimpleFragmentShader.fragmentshader">
+      <Filter>src\Rendering\Shaders</Filter>
+    </None>
+    <None Include="src\Renderer\Shaders\SimpleVertexShader.vertexshader">
+      <Filter>src\Rendering\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

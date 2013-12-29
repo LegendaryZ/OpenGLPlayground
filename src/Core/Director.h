@@ -2,6 +2,10 @@
 
 class Renderer;
 
+/**
+ * The controller of the main loop. Also
+ * holds the different subsystems. 
+ **/
 class Director
 {
 public:
