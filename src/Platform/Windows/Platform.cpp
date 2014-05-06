@@ -1,40 +1,19 @@
 #include "../Platform.h"
 
-#include "../../Renderer/Renderer.h"
-#include "../../Renderer/OpenGLRenderer.h"
+#include <string>
+
+#include "../../Systems/RenderingSystem/Renderer.h"
 #include "../../Core/Director.h"
-
-/**
- * The singleton constructor/referencer for the Platform
- *
- * @return Platform		the current platform
- **/
-Platform* Platform::getInstance()
-{
-	static Platform* platform;
-	if(!platform)
-		platform = new Platform();
-
-	return platform;
-}
-	
-Platform::Platform(void)
-{
-	platformType = DetectPlatform();
-}
-
-Platform::~Platform()
-{
-}
+#include "WinApp.h"
 
 /**
  * Returns what platform we are currently on
  *
  * @return PlatformType		the platform we are on
  **/
-Platform::PlatformType Platform::DetectPlatform()
+PlatformType DetectPlatform()
 {
-	return Platform::PlatformType::Windows;
+	return PlatformType::Windows;
 }
 
 /**
@@ -42,9 +21,9 @@ Platform::PlatformType Platform::DetectPlatform()
  *
  * @return success or failure
  **/
-bool Platform::SetUpSubsystems(Director* director)
+bool SetUpSubsystems(Director* director)
 {
-	director->setRenderer(new OpenGLRenderer());
+	director->SetRenderingSystem(RenderingSystem::SharedRenderingSystem());
 
 	return true;
 }
@@ -54,7 +33,7 @@ bool Platform::SetUpSubsystems(Director* director)
  *
  * @return the message from the os
  **/
-int Platform::PlatformProcess()
+int HandleOSMessages()
 {
 	int result = 0;
 	MSG msg;
@@ -63,7 +42,7 @@ int Platform::PlatformProcess()
 		result = msg.wParam;
 		if (msg.message == WM_QUIT)   // do we receive a WM_QUIT message?
 		{
-			Director::getSharedDirector()->quit(); // if so, time to quit the application
+			Director::SharedDirector()->Quit(); // if so, time to quit the application
 		}
 		else
 		{
@@ -71,5 +50,24 @@ int Platform::PlatformProcess()
 			DispatchMessage(&msg);
 		}
 	}
+
 	return result;
+}
+
+/**
+ * Set the text in the title bar of the window
+ *
+ * @param title	The text to be shown
+ **/
+void SetWindowTitle(const char* title)
+{
+	SetWindowText(WinApp::getInstance()->getHWND(),WinApp::convertCharToLPCWSTR(title) );
+}
+
+/**
+ * Swap buffers on the graphics card, displaying the currently rendered scene
+ **/
+void SwapBuffers()
+{
+	SwapBuffers(WinApp::getInstance()->getHDC());
 }

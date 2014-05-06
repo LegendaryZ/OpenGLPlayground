@@ -1,30 +1,44 @@
 #include "WinApp.h"
 
-#include "..\..\Renderer\Renderer.h"
+#include "..\..\Systems\RenderingSystem\Renderer.h"
 
 namespace
 {
-	// This is just used to forward Windows messages from a global window
-	// procedure to our member function window procedure because we cannot
-	// assign a member function to WNDCLASS::lpfnWndProc.
+	/**
+	 * This is just used to forward Windows messages from a global window
+	 * procedure to our member function window procedure because we cannot
+	 * assign a member function to WNDCLASS::lpfnWndProc.
+	**/
 	WinApp* gWinApp = 0;
 }
-
+  
+/**
+ * Forward hwnd on because we can get messages (e.g., WM_CREATE)
+ * before CreateWindow returns, and thus before mhMainWnd is valid.
+ **/
 LRESULT CALLBACK
 MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	// Forward hwnd on because we can get messages (e.g., WM_CREATE)
-	// before CreateWindow returns, and thus before mhMainWnd is valid.
 	return gWinApp->MsgProc(hwnd, msg, wParam, lParam);
 }
 
-WinApp::WinApp(HINSTANCE hInstance)
+WinApp* WinApp::getInstance()
+{
+	static WinApp* app;
+	if(!app)
+		app = new WinApp();
+	return app;
+}
+
+/**
+ * Basic Constructor that needs a reference to teh HINSTANCE
+ * of the app to run
+ **/
+WinApp::WinApp()
 {
 	gWinApp = this;
 	isFullscreen = FALSE;  // toggles fullscreen and windowed display
-	isActive = TRUE;      // false if window is minimized
 	hwnd = NULL;          // handle of our window
-	this->hInstance = hInstance; // application instance
 
 	APP_TITLE = L"Projections";
 
@@ -32,6 +46,26 @@ WinApp::WinApp(HINSTANCE hInstance)
 	SCREEN_HEIGHT   = 720;
 	SCREEN_BPP      = 32;
 	USE_FULLSCREEN  = false;
+}
+
+void WinApp::setHINSTANCE(HINSTANCE instance)
+{
+	hInstance = instance;
+}
+
+HINSTANCE WinApp::getHINSTANCE()
+{
+	return hInstance;
+}
+
+HWND WinApp::getHWND()
+{
+	return hwnd;
+}
+
+HDC WinApp::getHDC()
+{
+	return hdc;
 }
 
 WinApp::~WinApp()
@@ -64,12 +98,12 @@ LRESULT CALLBACK WinApp::MsgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 			if (!HIWORD(wParam))
 			{
 				// program was restored or maximized
-				isActive = TRUE;
+				director->Resume();
 			}
 			else
 			{
 				// program was minimized
-				isActive=FALSE;
+				director->Pause();
 			}
 
 			return 0;
@@ -97,7 +131,7 @@ LRESULT CALLBACK WinApp::MsgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 	case WM_SIZE:
 	{
 		// update perspective with new width and height
-		director->getRenderer()->OnResize(LOWORD(lParam), HIWORD(lParam));
+		director->GetRenderingSystem()->OnResize(LOWORD(lParam), HIWORD(lParam));
 		return 0;
 	}
 
@@ -309,11 +343,6 @@ BOOL WinApp::SetupWindow(LPCWSTR title, int width, int height, int bits, bool is
 		return FALSE;
 	}
 
-	// show the window in the forground, and set the keyboard focus to it
-	ShowWindow(hwnd, SW_SHOW);
-	SetForegroundWindow(hwnd);
-	SetFocus(hwnd);
-
 	// do one-time initialization
 	if (!Initialize())
 	{
@@ -321,21 +350,29 @@ BOOL WinApp::SetupWindow(LPCWSTR title, int width, int height, int bits, bool is
 		return FALSE;
 	}
 
+	// show the window in the forground, and set the keyboard focus to it
+	ShowWindow(hwnd, SW_SHOW);
+	SetForegroundWindow(hwnd);
+	SetFocus(hwnd);
+
 	// set up the perspective for the current screen size
-	director->getRenderer()->OnResize(width, height);
+	director->GetRenderingSystem()->OnResize(width, height);
 
 	return TRUE;
 } // end SetupWindow()
 
+/**
+ * Set up the Director and subsystems and 
+ * get them ready to be used by the application
+ **/
 BOOL WinApp::Initialize()
 {
-	director = Director::getSharedDirector();
-	platform = Platform::getInstance();
+	director = Director::SharedDirector();
 
-	if(!platform->SetUpSubsystems(director))
+	if(!SetUpSubsystems(director))
 		return false;
 
-	if(!director->getRenderer()->Initialize(hdc))
+	if(!director->GetRenderingSystem()->Initialize())
 		return false;
 
 	return true;
@@ -407,12 +444,22 @@ int WinApp::Run()
 {
 	int result;
 	if (SetupWindow(APP_TITLE, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_BPP, USE_FULLSCREEN))
-		result = director->run();
+		result = director->Run();
 	
 	Cleanup();
 	KillWindow();
 
 	return result;
+}
+
+LPCWSTR WinApp::convertCharToLPCWSTR(const char* cstring)
+{
+	const int strLen= strlen(cstring);
+	WCHAR* wbuffer = new WCHAR[strLen + 1];
+	MultiByteToWideChar( 0,0, cstring, strLen, wbuffer, strLen + 1);
+	wbuffer[strLen] = '\0';
+	LPCWSTR cstr4 = wbuffer;
+	return cstr4;
 }
 
 /**
@@ -435,7 +482,8 @@ int WinApp::Run()
  **/
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	WinApp app(hInstance);
+	WinApp* app = WinApp::getInstance();
+	app->setHINSTANCE(hInstance);
 
-	return app.Run();
+	return app->Run();
 }

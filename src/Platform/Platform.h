@@ -1,33 +1,32 @@
-#pragma once
+#ifndef PLATFORM_H
+#define PLATFORM_H
 
 class Director;
 
 /**
- * Set up the engine for the different supported platforms.
- * Will detect the current platform and spin up the differnt
- * subsystems correctly. 
+ * Handle Platform specific tasks and operations
+ * needed by the engine
  **/
-class Platform
-{
-public:
-	enum PlatformType{
-		Windows,
-		OSX,
-		Linux
-	};
 
-	static Platform* getInstance();
-	
-	PlatformType DetectPlatform();
-
-	bool SetUpSubsystems(Director* director);
-
-	int PlatformProcess();
-
-private:
-	PlatformType platformType;
-
-	Platform(void);
-	~Platform(void);
+/**
+* The kinds of platforms Playground can run on
+*/
+enum PlatformType{
+	Windows,
+	OSX,
+	Linux,
+	Android,
+	Ios
 };
 
+PlatformType DetectPlatform();
+
+bool SetUpSubsystems(Director* director);
+
+int HandleOSMessages();
+
+void SetWindowTitle(const char* title);
+
+void SwapBuffers();
+
+#endif /*PLATFORM_H*/

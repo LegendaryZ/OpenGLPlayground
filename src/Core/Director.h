@@ -1,6 +1,11 @@
-#pragma once
+#ifndef DIRECTOR_H
+#define DIRECTOR_H
 
-class Renderer;
+#include "..\Platform\FrameTimer.h"
+
+class RenderingSystem;
+class Scene;
+
 
 /**
  * The controller of the main loop. Also
@@ -9,22 +14,31 @@ class Renderer;
 class Director
 {
 public:
-	static Director* getSharedDirector();
+	static Director* SharedDirector();
+	~Director(void);
 
-	void setActive(bool active);
+	void Pause();
+	void Resume();
+	int Run();
+	void Quit();
 
-	void setRenderer(Renderer* renderer);
-	Renderer* getRenderer();
+	void AttachToScene(Scene* scene);
+	Scene* GetCurrentScene();
 
-	int run();
-	void quit();
+	void SetRenderingSystem(RenderingSystem* RenderingSystem);
+	RenderingSystem* GetRenderingSystem();
+
 private:
-	Renderer* renderer;
-	bool isActive;
-	bool isDone;
+	FrameTimer mTimer;	//<! Used to calculate the frame rate and Delta Time between frames
+	Scene* scene;		//<! The current model for the application
+	RenderingSystem* renderingSystem; //<! The RenderingSystem used to display the model
+	bool isActive;		//<! Whether the the application is currently being interacted with
+	bool isDone;		//<! Has the application finished running
 
 	Director(void);
-	~Director(void);
-	void update();
+
+
+	void CalculateFrameStats();
 };
 
+#endif /*DIRECTOR_H*/

@@ -1,13 +1,16 @@
 #include "Director.h"
-#include "../Renderer/Renderer.h"
-#include "../Platform/Platform.h"
+#include "..\Systems\RenderingSystem\Renderer.h"
+#include "..\Platform\Platform.h"
+#include "Scene.h"
+#include <string>
+#include <sstream>
 
 /**
  * Singleton constructor and reference
  *
  * @return director		The singleton Director
  **/
-Director* Director::getSharedDirector()
+Director* Director::SharedDirector()
 {
 	static Director* director;
 	if(!director)
@@ -18,6 +21,7 @@ Director* Director::getSharedDirector()
 
 Director::Director(void)
 {
+	scene = new Scene();
 }
 
 
@@ -26,14 +30,45 @@ Director::~Director(void)
 }
 
 /**
- * Tell the director whether the window is active (not minimized)
- * or not
- *
- * @param active	is the window minimized (false) or not (true)
+ * Pauses the main loop of the program. Should only ever be 
+ * called outside of the engine, never internally from within
+ * the main loop.
  **/
-void Director::setActive(bool active)
+void Director::Pause()
 {
-	isActive = active;
+	isActive = false;
+	mTimer.Stop();
+}
+
+/**
+ * Resumes the main loop of the program. Should only ever be 
+ * called outside of the engine, never internally from within
+ * the main loop.
+ **/
+void Director::Resume()
+{
+	isActive = true;
+	mTimer.Start();
+}
+
+/**
+ * Attach to the director to a scene. Only
+ * one scene can be attaced at a time.
+ *
+ * @param scene		The Scene to attach to
+ **/
+void Director::AttachToScene(Scene* scene)
+{
+	this->scene = scene;
+}
+
+/**
+ * @return the current scene or NULL if no scene
+ *		   is attached
+ **/
+Scene* Director::GetCurrentScene()
+{
+	return scene;
 }
 
 /**
@@ -41,30 +76,23 @@ void Director::setActive(bool active)
  *
  * @param renderer		the renderer to attach
  **/
-void Director::setRenderer(Renderer* renderer)
+void Director::SetRenderingSystem(RenderingSystem* renderer)
 {
-	this->renderer = renderer;
+	this->renderingSystem = renderer;
 }
 
 /**
  * @return  the renderer the Director is currently using
  **/
-Renderer* Director::getRenderer()
+RenderingSystem* Director::GetRenderingSystem()
 {
-	return renderer;
-}
-
-/**
- * Update the current scene
- **/
-void Director::update()
-{
+	return renderingSystem;
 }
 
 /**
  * Quit out of the app
  **/
-void Director::quit()
+void Director::Quit()
 {
 	isDone = true;
 }
@@ -75,25 +103,56 @@ void Director::quit()
  *
  * @return result		succesfully ran the game or not
  **/
-int Director::run()
+int Director::Run()
 {
 	isDone = false;
 	int result;
+	mTimer.Reset();
 	// main loop
 	while (!isDone)
 	{
-		result = Platform::getInstance()->PlatformProcess();//Listen for platform messages
+		result = HandleOSMessages();//Listen for platform messages
 
+		mTimer.Tick();
 		// don't update the scene if the app is minimized
 		if (isActive)
-		{
+		{ //Calculate framerate statistics
+			CalculateFrameStats();
+
 			// update the scene every time through the loop
-			update();
+			scene->update(mTimer.DeltaTime());
 
 			// render the scene every time through the loop
-			renderer->Render();
+			renderingSystem->Render(scene);
 		}
 	}
 
 	return result;
+}
+
+/**
+ * Code computes the average frames per second, and also the 
+ * average time it takes to render one frame. 
+ **/
+void Director::CalculateFrameStats()
+{
+	static int frameCnt = 0;
+	static float timeElapsed = 0.0f;
+
+	frameCnt++;
+
+	// Compute averages over one second period.
+	if( (mTimer.TotalTime() - timeElapsed) >= 1.0f )
+	{
+		float fps = (float)frameCnt; // fps = frameCnt / 1
+		float mspf = 1000.0f / fps;
+		
+		// Reset for next average.
+		frameCnt = 0;
+		timeElapsed += 1.0f;
+		
+		std::stringstream ss;
+		ss << "Playground	" << "FPS: " << fps;
+		SetWindowTitle(ss.str().c_str());
+	}
 }
