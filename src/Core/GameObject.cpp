@@ -28,6 +28,7 @@ bool GameObject::update(float dt)
 
 bool GameObject::initialize()
 {
+	return true;
 }
 
 bool GameObject::addComponent(ComponentType type, Component* component, bool replaceExisting)

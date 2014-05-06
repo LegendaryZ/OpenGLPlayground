@@ -13,7 +13,7 @@
 
 RenderingSystem* RenderingSystem::SharedRenderingSystem()
 {
-	RenderingSystem* renderingSystem;
+	static RenderingSystem* renderingSystem;
 	if(!renderingSystem)
 		renderingSystem = new RenderingSystem();
 	return renderingSystem;
