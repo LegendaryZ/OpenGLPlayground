@@ -9,12 +9,12 @@ class GameObject;
 class ScriptComponent : public Component
 {
 public:
+	LuaScript* script;
+
 	ScriptComponent(LuaScript* script);
 	~ScriptComponent(void);
 
 	virtual void addedToGameObject(GameObject* gameObject);
-private:
-	LuaScript* script;
 };
 
 #endif /*SCRIPTCOMPONENT_H*/

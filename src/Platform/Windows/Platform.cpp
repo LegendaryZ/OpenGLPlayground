@@ -3,6 +3,7 @@
 #include <string>
 
 #include "../../Systems/RenderingSystem/Renderer.h"
+#include "../../Systems/ScriptingSystem/ScriptManager.h"
 #include "../../Core/Director.h"
 #include "WinApp.h"
 
@@ -24,7 +25,7 @@ PlatformType DetectPlatform()
 bool SetUpSubsystems(Director* director)
 {
 	director->SetRenderingSystem(RenderingSystem::SharedRenderingSystem());
-
+	ScriptManager::getInstance()->loadScripts(std::string("src/Systems/ScriptingSystem/Scripts/"));
 	return true;
 }
 

@@ -2,6 +2,7 @@
 #define RENDERER_H
 
 class Scene;
+class GameObject;
 
 /**
  * Base Level Render. Used to swap Rendering techniques on
@@ -19,6 +20,7 @@ public:
 	
 	bool Render(Scene* scene);
 	
+
 private:
 	RenderingSystem();
 
@@ -28,6 +30,7 @@ private:
 	unsigned int vertexbuffer;		// This will identify our vertex buffer
 	unsigned LoadShadersIntoProgram(const char * vertex_file_path,const char * fragment_file_path);
 
+	bool Render(GameObject* go);
 	bool UpdateProjection(void);
 };
 

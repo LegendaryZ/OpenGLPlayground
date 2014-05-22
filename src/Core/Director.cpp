@@ -156,3 +156,19 @@ void Director::CalculateFrameStats()
 		SetWindowTitle(ss.str().c_str());
 	}
 }
+
+#include "GameObject.h"
+#include "..\Systems\RenderingSystem\RenderingComponents.h"
+
+Scene* Director::getSampleScene()
+{
+	Scene* defaultScene = new Scene();
+	GameObject* obj = new GameObject(1);
+	RenderingComponent* rendComp = new RenderingComponent();
+	rendComp->mesh = MeshCache::getInstance()->getMeshData("box");
+	//obj.addComponent(new ScriptComponent(LuaScript::create(std::string("src//Systems//ScriptingSystem//Scripts//player.lua"))));
+	obj->addComponent(rendComp);
+	defaultScene->addGameObject(obj);
+
+	return defaultScene;
+}

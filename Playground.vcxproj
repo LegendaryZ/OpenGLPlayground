@@ -20,9 +20,10 @@
     <ClCompile Include="src\Platform\Windows\FrameTimer.cpp" />
     <ClCompile Include="src\Platform\Windows\Platform.cpp" />
     <ClCompile Include="src\Platform\Windows\WinApp.cpp" />
+    <ClCompile Include="src\Systems\InputSystem\InputSystemcpp.cpp" />
     <ClCompile Include="src\Systems\RenderingSystem\MeshCache.cpp" />
     <ClCompile Include="src\Systems\RenderingSystem\Renderer.cpp" />
-    <ClCompile Include="src\Systems\RenderingSystem\Vertex.cpp" />
+    <ClCompile Include="src\Systems\RenderingSystem\RenderingComponents.cpp" />
     <ClCompile Include="src\Systems\ScriptingSystem\LuaScript.cpp" />
     <ClCompile Include="src\Systems\ScriptingSystem\ScriptComponent.cpp" />
     <ClCompile Include="src\Systems\ScriptingSystem\ScriptManager.cpp" />
@@ -31,9 +32,9 @@
     <ClInclude Include="src\Core\Component.h" />
     <ClInclude Include="src\Platform\Helper.h" />
     <ClInclude Include="src\Platform\ThreadManager.h" />
-    <ClInclude Include="src\Systems\Component.h" />
     <ClInclude Include="src\Core\Director.h" />
     <ClInclude Include="src\Core\GameObject.h" />
+    <ClInclude Include="src\Systems\InputSystem\InputSystem.h" />
     <ClInclude Include="src\Systems\PhysicsSystem\PhysicsConstants.h" />
     <ClInclude Include="src\Core\Scene.h" />
     <ClInclude Include="src\Platform\FrameTimer.h" />

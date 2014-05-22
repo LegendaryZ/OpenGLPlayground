@@ -1,6 +1,12 @@
 #include "WinApp.h"
 
 #include "..\..\Systems\RenderingSystem\Renderer.h"
+#include "..\..\Core\Scene.h"
+#include "..\..\Core\GameObject.h"
+#include "..\..\Systems\ScriptingSystem\LuaScript.h"
+#include "..\..\Systems\ScriptingSystem\ScriptComponent.h"
+#include "..\..\Systems\RenderingSystem\MeshCache.h"
+#include "..\..\Systems\RenderingSystem\RenderingComponents.h"
 
 namespace
 {
@@ -374,6 +380,10 @@ BOOL WinApp::Initialize()
 
 	if(!director->GetRenderingSystem()->Initialize())
 		return false;
+
+	MeshCache::getInstance()->loadBasicGeometry();
+
+	director->AttachToScene(director->getSampleScene());
 
 	return true;
 }

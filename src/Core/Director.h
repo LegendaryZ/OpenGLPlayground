@@ -28,6 +28,8 @@ public:
 	void SetRenderingSystem(RenderingSystem* RenderingSystem);
 	RenderingSystem* GetRenderingSystem();
 
+	Scene* getSampleScene();
+
 private:
 	FrameTimer mTimer;	//<! Used to calculate the frame rate and Delta Time between frames
 	Scene* scene;		//<! The current model for the application

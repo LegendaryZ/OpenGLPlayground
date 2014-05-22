@@ -8,6 +8,8 @@
 
 #define WND_CLASS_NAME  L"WinApp"
 
+class Scene;
+
 /**
  * This is the entry point for the application on
  * the windows platform. This class is responsible for
@@ -36,6 +38,7 @@ public:
 
 protected:
 	Director* director;			  //!< The main director used to facilitate interactions between the OS and the program
+	Scene* defaultScene;
 
 	HDC       hdc;                //!< Device context
 	HGLRC     hrc;                //!< Rendering context

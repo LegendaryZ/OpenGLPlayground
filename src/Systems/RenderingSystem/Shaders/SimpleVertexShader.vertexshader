@@ -1,8 +1,17 @@
-void main(){
-    	
-	// the following three lines provide the same result
-	gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex;
-	//gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-	//gl_Position = ftransform();
-}
+#version 330
+  
+uniform mat4 MVP;
+ 
+layout(location = 0) in vec4 position;
+layout(location = 1) in vec4 color;
+layout(location = 2) in vec3 normal;
+layout(location = 3) in vec3 tangent;
+layout(location = 4) in vec2 texC;
 
+out vec4 colorV;
+ 
+void main()
+{
+    colorV = color;
+    gl_Position = MVP * position ;
+}

@@ -1,15 +1,23 @@
 #ifndef MESHCOMPONENT_H
 #define MESHCOMPONENT_H
 
-#include "..\Component.h"
+#include "..\..\Core\Component.h"
 
 #include "MeshCache.h"
 #include "..\..\Core\GameObject.h"
 
-struct MeshComponent : Component
+class RenderingComponent : public Component
 {
+public:
 	MeshData mesh;
-	GameObject* owner;
+
+	void draw();
+	RenderingComponent():Component()
+	{
+		id = 11;
+	}
+
+private:
 };
 
 #endif /*MESHCOMPONENT_H*/

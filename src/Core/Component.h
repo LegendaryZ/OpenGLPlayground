@@ -7,7 +7,7 @@ class Component
 {
 public:
 	int gameObjectID;
-
+	int id;
 	Component(void);
 	~Component(void);
 

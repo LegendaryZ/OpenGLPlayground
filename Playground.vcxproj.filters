@@ -39,9 +39,6 @@
     <ClCompile Include="src\Systems\RenderingSystem\Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Systems\RenderingSystem\Vertex.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Systems\ScriptingSystem\LuaScript.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -58,6 +55,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Windows\Helper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Systems\InputSystem\InputSystemcpp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Systems\RenderingSystem\RenderingComponents.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -92,9 +95,6 @@
     <ClInclude Include="src\Systems\PhysicsSystem\PhysicsConstants.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Systems\Component.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Systems\RenderingSystem\RenderingComponents.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -114,6 +114,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Helper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Systems\InputSystem\InputSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
